@@ -20,5 +20,13 @@ export default function Page() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {pages.map((p) => (
           <Link key={p.path} href={p.path}>
-            <div className="p-6 border rounded-xl hover:shadow-lg transition bg-white">
-              <h2 className="text-xl font-semibold mb-1">{p.nam
+            <div className="p-6 border rounded-xl hover:shadow-lg transition bg-white cursor-pointer">
+              <h2 className="text-xl font-semibold mb-1">{p.name}</h2>
+              <p className="text-slate-600 text-sm">{p.desc}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
