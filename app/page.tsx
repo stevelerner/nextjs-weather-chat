@@ -13,9 +13,9 @@ export default function Page() {
     <div className="space-y-12 pb-8">
       <div className="max-w-3xl mx-auto p-8 space-y-8">
         <header className="text-center">
-          <h1 className="text-3xl font-bold mb-2">Next.js Weather Playground</h1>
+          <h1 className="text-3xl font-bold mb-2">Next.js and OpenAI Weather Playground</h1>
           <p className="text-slate-600">
-            Explore Next.js rendering strategies deployed on Vercel with live weather data.
+            Explore Next.js rendering strategies and AI-powered weather chat.
           </p>
         </header>
 

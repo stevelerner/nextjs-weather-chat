@@ -71,17 +71,17 @@ export default function Chat() {
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      <div className="bg-white rounded-xl border shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
-          <h2 className="text-xl font-semibold text-white">AI Chat Assistant</h2>
-          <p className="text-blue-100 text-sm">Powered by OpenAI</p>
+      <div className="bg-white rounded-xl border hover:shadow-lg transition overflow-hidden">
+        <div className="p-6 border-b bg-white">
+          <h2 className="text-xl font-semibold mb-1">Weather Assistant</h2>
+          <p className="text-slate-600 text-sm">Ask me anything about weather</p>
         </div>
 
-        <div className="h-96 overflow-y-auto p-4 space-y-4 bg-slate-50">
+        <div className="h-96 overflow-y-auto p-4 space-y-4 bg-white">
           {messages.length === 0 && (
             <div className="text-center text-slate-400 mt-20">
               <p className="text-lg">Start a conversation!</p>
-              <p className="text-sm mt-2">Ask me anything about this Next.js app or general questions.</p>
+              <p className="text-sm mt-2">Ask me about weather forecasts, climate, or meteorology.</p>
             </div>
           )}
           {messages.map((message, index) => (
@@ -94,8 +94,8 @@ export default function Chat() {
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
                   message.role === "user"
-                    ? "bg-blue-500 text-white"
-                    : "bg-white border text-slate-800"
+                    ? "bg-slate-100 border text-slate-800"
+                    : "bg-slate-50 border text-slate-800"
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -104,7 +104,7 @@ export default function Chat() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border rounded-lg p-3">
+              <div className="bg-slate-50 border rounded-lg p-3">
                 <div className="flex space-x-2">
                   <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce delay-100"></div>
@@ -122,14 +122,14 @@ export default function Chat() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Ask about weather..."
+              className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
+              className="px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition"
             >
               Send
             </button>
