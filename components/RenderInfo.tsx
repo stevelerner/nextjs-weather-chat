@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type RenderInfoProps = {
   technique: "SSG" | "SSR" | "ISR" | "Edge";
   renderTime: string;
+  serverDuration: number;
 };
 
 type TechniqueInfo = {
@@ -150,7 +151,7 @@ export default async function Page() {
   },
 };
 
-export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
+export default function RenderInfo({ technique, renderTime, serverDuration }: RenderInfoProps) {
   const [perfMetrics, setPerfMetrics] = useState<{
     ttfb: number | null;
     domContentLoaded: number | null;
@@ -227,8 +228,8 @@ export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
           <h3 className="font-semibold text-slate-900 mb-3">Performance Metrics</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-slate-600 text-xs uppercase mb-1">Server Rendered</p>
-              <p className="font-mono font-semibold text-lg">{renderTime}</p>
+              <p className="text-slate-600 text-xs uppercase mb-1">Server Duration</p>
+              <p className="font-mono font-semibold text-lg">{serverDuration.toFixed(2)}ms</p>
             </div>
             <div>
               <p className="text-slate-600 text-xs uppercase mb-1">TTFB</p>
@@ -250,9 +251,9 @@ export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
             </div>
           </div>
           <div className="mt-3 text-xs text-slate-600">
-            <p><strong>TTFB:</strong> Time to First Byte (server response time)</p>
-            <p><strong>DOM Ready:</strong> Time until DOM content is loaded and parsed</p>
-            <p><strong>Full Load:</strong> Complete page load including all resources</p>
+            <p><strong>Server Duration:</strong> Time to render on server (SSG at build, SSR/ISR/Edge per request)</p>
+            <p><strong>TTFB:</strong> Time to First Byte from browser perspective (network + server time)</p>
+            <p><strong>DOM/Full Load:</strong> Browser-side parsing and resource loading times</p>
           </div>
         </div>
 

@@ -7,15 +7,22 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Page() {
+  const startTime = performance.now();
   // Force fresh render by accessing headers
   await headers();
   const data = await fetchData();
+  const serverDuration = performance.now() - startTime;
+  
   return (
     <div className="space-y-8 pb-8">
       <div className="max-w-3xl mx-auto p-8">
         <DataCard title="Server-Side Rendering (SSR)" data={data} renderType="Server runtime" />
       </div>
-      <RenderInfo technique="SSR" renderTime={data.time} />
+      <RenderInfo 
+        technique="SSR" 
+        renderTime={data.time}
+        serverDuration={serverDuration}
+      />
     </div>
   );
 }
