@@ -1,10 +1,14 @@
 import { fetchData } from "@/lib/fetchData";
 import DataCard from "@/components/DataCard";
 import RenderInfo from "@/components/RenderInfo";
+import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Page() {
+  // Force fresh render by accessing headers
+  await headers();
   const data = await fetchData();
   return (
     <div className="space-y-8 pb-8">

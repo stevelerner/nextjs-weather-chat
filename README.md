@@ -13,33 +13,33 @@ An interactive demonstration of Next.js rendering strategies (SSG, SSR, ISR, Edg
 ## Project Structure
 
 ```
-nextjs-boilerplate/
+nextjs-weather-chat/
 │
 ├── app/                              # Next.js 15 App Router directory
 │   ├── api/                          # API routes
 │   │   ├── chat/
 │   │   │   └── route.ts              # OpenAI chat endpoint
-│   │   │                             • Handles POST requests to OpenAI API
-│   │   │                             • Restricts responses to weather-related topics
-│   │   │                             • Returns AI-generated weather assistance
+│   │   │                             • Handles POST requests to OpenAI API (gpt-4o-mini)
+│   │   │                             • Restricts responses to weather-related topics only
+│   │   │                             • Returns AI-generated weather assistance with error handling
 │   │   │
 │   │   └── data/
-│   │       └── route.ts              # Mock weather data API
-│   │                                 • Provides sample weather data for demos
-│   │                                 • Returns JSON with temperature, wind, location
-│   │                                 • Used by all rendering strategy pages
+│   │       └── route.ts              # Weather data API endpoint
+│   │                                 • Fetches real weather data from Open-Meteo API
+│   │                                 • Returns JSON with temperature, wind, location, and timestamp
+│   │                                 • Used by all rendering strategy demo pages
 │   │
 │   ├── ssg/
 │   │   └── page.tsx                  # Static Site Generation demo
 │   │                                 • Pre-rendered at build time (revalidate = false)
 │   │                                 • Fastest page loads, served from CDN
-│   │                                 • Best for content that rarely changes
+│   │                                 • Shows timestamp from build time, never updates until redeploy
 │   │
 │   ├── ssr/
 │   │   └── page.tsx                  # Server-Side Rendering demo
 │   │                                 • Rendered on-demand per request (dynamic = "force-dynamic")
-│   │                                 • Always fresh data, higher server load
-│   │                                 • Best for personalized or frequently changing content
+│   │                                 • Always fresh data with current timestamp on every request
+│   │                                 • Best for personalized or real-time content
 │   │
 │   ├── isr/
 │   │   └── page.tsx                  # Incremental Static Regeneration demo
@@ -51,73 +51,87 @@ nextjs-boilerplate/
 │   │   └── page.tsx                  # Edge Function Rendering demo
 │   │                                 • Runs on Vercel Edge Network (runtime = "edge")
 │   │                                 • Low latency, executes near users globally
-│   │                                 • Lightweight JavaScript runtime
+│   │                                 • Lightweight JavaScript runtime with limited Node.js APIs
 │   │
 │   ├── layout.tsx                    # Root layout component
-│   │                                 • Defines global HTML structure
-│   │                                 • Loads Geist font families
-│   │                                 • Sets metadata for SEO
+│   │                                 • Defines global HTML structure and metadata
+│   │                                 • Loads Geist Sans and Geist Mono font families
+│   │                                 • Sets page title and description for SEO
 │   │
 │   ├── page.tsx                      # Homepage
-│   │                                 • Displays rendering strategy cards
-│   │                                 • Shows Chat component at bottom
-│   │                                 • Links to each demo page
+│   │                                 • Displays four rendering strategy cards with color-coded borders
+│   │                                 • Shows performance badges (Fastest, Dynamic, Balanced, Global)
+│   │                                 • Includes Chat component at bottom
 │   │
 │   ├── globals.css                   # Global styles
-│   │                                 • Tailwind CSS directives
-│   │                                 • Base styling and CSS variables
+│   │                                 • Tailwind CSS @layer directives
+│   │                                 • Base styling and CSS custom properties
 │   │
 │   └── favicon.ico                   # Site favicon
+│                                     • Browser tab icon
 │
 ├── components/                       # Reusable React components
-│   ├── Chat.tsx                      # Weather chatbot UI
-│   │                                 • Client-side chat interface with OpenAI
-│   │                                 • Message history and real-time responses
-│   │                                 • Weather-focused conversation assistant
+│   ├── Chat.tsx                      # Weather chatbot UI component
+│   │                                 • Client-side chat interface with message history
+│   │                                 • Sends messages to /api/chat and displays responses
+│   │                                 • Auto-scrolling and loading states with animations
 │   │
 │   ├── DataCard.tsx                  # Weather data display card
-│   │                                 • Shows location, temperature, wind speed
+│   │                                 • Shows location, temperature, and wind speed
 │   │                                 • Displays render type and timestamp
-│   │                                 • Used by all rendering demo pages
+│   │                                 • Reused by all four rendering demo pages
 │   │
 │   └── RenderInfo.tsx                # Rendering technique documentation
-│                                     • Displays pros/cons for each strategy
-│                                     • Shows performance metrics (TTFB, DOM Ready, etc.)
-│                                     • Includes code snippets and explanations
+│                                     • Displays pros/cons comparison for each strategy
+│                                     • Shows performance metrics (TTFB, DOM Ready, Full Load)
+│                                     • Includes code snippets with explanations
 │
 ├── lib/                              # Utility functions and helpers
-│   └── fetchData.ts                  # Data fetching utility
-│                                     • Fetches weather data from /api/data
-│                                     • Used by all rendering strategy pages
-│                                     • Returns structured weather data
+│   └── fetchData.ts                  # Weather data fetching utility
+│                                     • Fetches from Open-Meteo API (NYC coordinates)
+│                                     • Returns structured data with current timestamp
+│                                     • Includes error handling with fallback data
 │
-├── public/                           # Static assets
-│   ├── *.svg                         # Icon assets
-│                                     • Vercel, Next.js logos and UI icons
-│                                     • Served directly without processing
+├── public/                           # Static assets (served as-is)
+│   ├── file.svg                      # UI icon asset
+│   ├── globe.svg                     # UI icon asset
+│   ├── next.svg                      # Next.js logo
+│   ├── vercel.svg                    # Vercel logo
+│   └── window.svg                    # UI icon asset
 │
-├── middleware.ts                     # Next.js middleware
-│                                     • Runs before request completion
-│                                     • Can modify requests/responses
-│                                     • Currently minimal implementation
+├── .gitignore                        # Git ignore rules
+│                                     • Excludes node_modules, .next, .env* files
+│                                     • Prevents committing build artifacts and secrets
 │
-├── package.json                      # Project dependencies
-│                                     • Next.js 15.5.5, React 19
-│                                     • OpenAI SDK for chat functionality
-│                                     • Tailwind CSS for styling
-│
-├── tsconfig.json                     # TypeScript configuration
-│                                     • Compiler options and path aliases
-│                                     • Enables strict type checking
-│                                     • Configures module resolution
+├── next-env.d.ts                     # Next.js TypeScript declarations
+│                                     • Auto-generated by Next.js
+│                                     • Provides TypeScript types for Next.js
 │
 ├── next.config.ts                    # Next.js configuration
-│                                     • Framework settings and optimizations
-│                                     • Build and runtime configurations
+│                                     • Framework settings and build optimizations
+│                                     • Currently uses default configuration
 │
-└── postcss.config.mjs                # PostCSS configuration
-                                      • Tailwind CSS processing
-                                      • CSS transformation pipeline
+├── package.json                      # Project dependencies and scripts
+│                                     • Next.js 15.5.5, React 19, OpenAI SDK
+│                                     • Dev script uses Turbopack for faster development
+│                                     • Build script uses standard Next.js compiler
+│
+├── package-lock.json                 # Locked dependency versions
+│                                     • Ensures consistent installs across environments
+│
+├── postcss.config.mjs                # PostCSS configuration
+│                                     • Configures Tailwind CSS processing
+│                                     • Transforms CSS during build
+│
+├── tsconfig.json                     # TypeScript configuration
+│                                     • Compiler options with strict type checking
+│                                     • Path aliases (@/* points to project root)
+│                                     • Module resolution settings for Next.js
+│
+└── vercel.json                       # Vercel deployment configuration
+                                      • Explicitly sets framework to Next.js
+                                      • Ensures correct build and install commands
+                                      • Required for non-template deployments
 ```
 
 ## Getting Started
@@ -131,8 +145,8 @@ nextjs-boilerplate/
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
-   cd nextjs-boilerplate
+   git clone https://github.com/stevelerner/nextjs-weather-chat
+   cd nextjs-weather-chat
    ```
 
 2. Install dependencies:
@@ -165,30 +179,33 @@ This project is optimized for deployment on [Vercel](https://vercel.com):
 
 1. Push your code to GitHub
 2. Import the project in Vercel
-3. Add `OPENAI_API_KEY` environment variable in Vercel project settings
-4. Deploy
+3. Set **Framework Preset** to "Next.js" in project settings
+4. Add `OPENAI_API_KEY` environment variable in Vercel project settings
+5. Deploy
+
+**Note:** The `vercel.json` file ensures proper Next.js framework detection for blank deployments.
 
 ## Rendering Strategies Explained
 
 ### SSG (Static Site Generation)
-- Pages built at compile time
-- Served from CDN edge locations
-- Best performance, no server processing
+- Pages built at compile time during deployment
+- Served from CDN edge locations globally
+- Best performance, no server processing needed
 
 ### SSR (Server-Side Rendering)
-- Pages rendered on each request
-- Always fresh, dynamic data
-- Higher latency, more server resources
+- Pages rendered on the server for each request
+- Always fresh, dynamic data per visitor
+- Higher latency, requires server resources
 
 ### ISR (Incremental Static Regeneration)
-- Static pages with periodic updates
-- Background regeneration after revalidation period
-- Balance of speed and freshness
+- Static pages with periodic background updates
+- 30-second revalidation period in this demo
+- Optimal balance of speed and freshness
 
 ### Edge (Edge Function Rendering)
-- Runs on edge nodes globally
-- Low latency from geographic proximity
-- Lightweight runtime environment
+- Runs on Vercel's global edge network
+- Low latency from geographic proximity to users
+- Limited Node.js API support (lightweight runtime)
 
 ## Tech Stack
 
