@@ -15,6 +15,7 @@ type TechniqueInfo = {
   color: string;
   bgColor: string;
   code: string;
+  filePath: string;
   codeExplanation: string[];
 };
 
@@ -37,17 +38,17 @@ const renderingInfo: Record<"SSG" | "SSR" | "ISR" | "Edge", TechniqueInfo> = {
     ],
     color: "border-green-500",
     bgColor: "bg-green-50",
+    filePath: "app/ssg/page.tsx",
     code: `export const revalidate = false;
 
 export default async function Page() {
   const data = await fetchData();
-  return <Component data={data} />;
+  return <DataCard data={data} />;
 }`,
     codeExplanation: [
-      "Setting revalidate to false tells Next.js to generate this page at build time only",
-      "The page is built once during 'npm run build' and never regenerated",
-      "Data fetching happens at build time, not runtime",
-      "Result is static HTML files served from CDN",
+      "revalidate = false disables revalidation, making this pure static generation",
+      "Page is built once during deployment and never regenerated",
+      "fetchData() runs at build time, not on user requests",
     ],
   },
   SSR: {
@@ -68,17 +69,19 @@ export default async function Page() {
     ],
     color: "border-blue-500",
     bgColor: "bg-blue-50",
+    filePath: "app/ssr/page.tsx",
     code: `export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Page() {
+  await headers(); // Forces dynamic rendering
   const data = await fetchData();
-  return <Component data={data} />;
+  return <DataCard data={data} />;
 }`,
     codeExplanation: [
-      "Setting dynamic to 'force-dynamic' opts the page out of static generation",
-      "Next.js renders this page on the server for every request",
-      "Data is fetched fresh on each page load",
-      "Useful for user-specific or frequently changing content",
+      "dynamic = 'force-dynamic' prevents static optimization",
+      "revalidate = 0 ensures no caching between requests",
+      "Calling headers() guarantees fresh server-side render every time",
     ],
   },
   ISR: {
@@ -99,17 +102,17 @@ export default async function Page() {
     ],
     color: "border-purple-500",
     bgColor: "bg-purple-50",
+    filePath: "app/isr/page.tsx",
     code: `export const revalidate = 30;
 
 export default async function Page() {
   const data = await fetchData();
-  return <Component data={data} />;
+  return <DataCard data={data} />;
 }`,
     codeExplanation: [
-      "Setting revalidate to 30 enables ISR with a 30-second cache",
-      "First request generates and caches the page",
-      "Subsequent requests within 30s serve cached version",
-      "After 30s, next request triggers background regeneration",
+      "revalidate = 30 sets cache lifetime to 30 seconds",
+      "Serves cached version for 30s after first request",
+      "After cache expires, next visitor triggers background regeneration while seeing cached content",
     ],
   },
   Edge: {
@@ -130,17 +133,19 @@ export default async function Page() {
     ],
     color: "border-orange-500",
     bgColor: "bg-orange-50",
+    filePath: "app/edge/page.tsx",
     code: `export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
+  await headers(); // Forces dynamic rendering
   const data = await fetchData();
-  return <Component data={data} />;
+  return <DataCard data={data} />;
 }`,
     codeExplanation: [
-      "Setting runtime to 'edge' runs this route on Edge Runtime",
-      "Code executes on Vercel's Edge Network worldwide",
-      "Runs closer to users for reduced latency",
-      "Uses a lightweight JavaScript runtime (subset of Node.js)",
+      "runtime = 'edge' deploys this function to Vercel's global edge network",
+      "Executes on CDN nodes closest to users worldwide for minimal latency",
+      "Combines edge performance with dynamic rendering capabilities",
     ],
   },
 };
@@ -253,6 +258,12 @@ export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
 
         <div className="bg-slate-50 p-4 rounded-lg border">
           <h3 className="font-semibold text-slate-900 mb-3">Implementation Code</h3>
+          <div className="mb-2 flex items-center text-sm">
+            <span className="text-slate-600">File:</span>
+            <code className="ml-2 px-2 py-1 bg-slate-200 rounded text-slate-800 font-mono">
+              {info.filePath}
+            </code>
+          </div>
           <div className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-x-auto">
             <pre className="text-sm font-mono leading-relaxed">
               <code className="whitespace-pre">{info.code}</code>
