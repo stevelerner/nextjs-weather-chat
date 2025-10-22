@@ -7,7 +7,18 @@ type RenderInfoProps = {
   renderTime: string;
 };
 
-const renderingInfo = {
+type TechniqueInfo = {
+  title: string;
+  description: string;
+  pros: string[];
+  cons: string[];
+  color: string;
+  bgColor: string;
+  code: string;
+  codeExplanation: string[];
+};
+
+const renderingInfo: Record<"SSG" | "SSR" | "ISR" | "Edge", TechniqueInfo> = {
   SSG: {
     title: "Static Site Generation (SSG)",
     description:
@@ -26,6 +37,18 @@ const renderingInfo = {
     ],
     color: "border-green-500",
     bgColor: "bg-green-50",
+    code: `export const revalidate = false;
+
+export default async function Page() {
+  const data = await fetchData();
+  return <Component data={data} />;
+}`,
+    codeExplanation: [
+      "Setting revalidate to false tells Next.js to generate this page at build time only",
+      "The page is built once during 'npm run build' and never regenerated",
+      "Data fetching happens at build time, not runtime",
+      "Result is static HTML files served from CDN",
+    ],
   },
   SSR: {
     title: "Server-Side Rendering (SSR)",
@@ -45,6 +68,18 @@ const renderingInfo = {
     ],
     color: "border-blue-500",
     bgColor: "bg-blue-50",
+    code: `export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const data = await fetchData();
+  return <Component data={data} />;
+}`,
+    codeExplanation: [
+      "Setting dynamic to 'force-dynamic' opts the page out of static generation",
+      "Next.js renders this page on the server for every request",
+      "Data is fetched fresh on each page load",
+      "Useful for user-specific or frequently changing content",
+    ],
   },
   ISR: {
     title: "Incremental Static Regeneration (ISR)",
@@ -64,6 +99,18 @@ const renderingInfo = {
     ],
     color: "border-purple-500",
     bgColor: "bg-purple-50",
+    code: `export const revalidate = 30;
+
+export default async function Page() {
+  const data = await fetchData();
+  return <Component data={data} />;
+}`,
+    codeExplanation: [
+      "Setting revalidate to 30 enables ISR with a 30-second cache",
+      "First request generates and caches the page",
+      "Subsequent requests within 30s serve cached version",
+      "After 30s, next request triggers background regeneration",
+    ],
   },
   Edge: {
     title: "Edge Function Rendering",
@@ -83,17 +130,54 @@ const renderingInfo = {
     ],
     color: "border-orange-500",
     bgColor: "bg-orange-50",
+    code: `export const runtime = "edge";
+
+export default async function Page() {
+  const data = await fetchData();
+  return <Component data={data} />;
+}`,
+    codeExplanation: [
+      "Setting runtime to 'edge' runs this route on Edge Runtime",
+      "Code executes on Vercel's Edge Network worldwide",
+      "Runs closer to users for reduced latency",
+      "Uses a lightweight JavaScript runtime (subset of Node.js)",
+    ],
   },
 };
 
 export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
-  const [clientRenderTime, setClientRenderTime] = useState<number | null>(null);
+  const [perfMetrics, setPerfMetrics] = useState<{
+    ttfb: number | null;
+    domContentLoaded: number | null;
+    loadComplete: number | null;
+  }>({
+    ttfb: null,
+    domContentLoaded: null,
+    loadComplete: null,
+  });
   const info = renderingInfo[technique];
 
   useEffect(() => {
-    // Measure time to hydrate/render on client
-    const startTime = performance.now();
-    setClientRenderTime(performance.now() - startTime);
+    // Get performance metrics from Navigation Timing API
+    const getMetrics = () => {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      
+      if (navigation) {
+        setPerfMetrics({
+          ttfb: Math.round(navigation.responseStart - navigation.requestStart),
+          domContentLoaded: Math.round(navigation.domContentLoadedEventEnd - navigation.fetchStart),
+          loadComplete: Math.round(navigation.loadEventEnd - navigation.fetchStart),
+        });
+      }
+    };
+
+    // Wait for page to fully load before measuring
+    if (document.readyState === 'complete') {
+      getMetrics();
+    } else {
+      window.addEventListener('load', getMetrics);
+      return () => window.removeEventListener('load', getMetrics);
+    }
   }, []);
 
   return (
@@ -136,21 +220,54 @@ export default function RenderInfo({ technique, renderTime }: RenderInfoProps) {
 
         <div className="bg-slate-50 p-4 rounded-lg border">
           <h3 className="font-semibold text-slate-900 mb-3">Performance Metrics</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <p className="text-slate-600 text-xs uppercase mb-1">Server Render</p>
+              <p className="text-slate-600 text-xs uppercase mb-1">Server Rendered</p>
               <p className="font-mono font-semibold text-lg">{renderTime}</p>
             </div>
             <div>
-              <p className="text-slate-600 text-xs uppercase mb-1">Hydration Time</p>
+              <p className="text-slate-600 text-xs uppercase mb-1">TTFB</p>
               <p className="font-mono font-semibold text-lg">
-                {clientRenderTime !== null ? `${clientRenderTime.toFixed(2)}ms` : "measuring..."}
+                {perfMetrics.ttfb !== null ? `${perfMetrics.ttfb}ms` : "measuring..."}
               </p>
             </div>
             <div>
-              <p className="text-slate-600 text-xs uppercase mb-1">Render Type</p>
-              <p className="font-semibold text-lg">{technique}</p>
+              <p className="text-slate-600 text-xs uppercase mb-1">DOM Ready</p>
+              <p className="font-mono font-semibold text-lg">
+                {perfMetrics.domContentLoaded !== null ? `${perfMetrics.domContentLoaded}ms` : "measuring..."}
+              </p>
             </div>
+            <div>
+              <p className="text-slate-600 text-xs uppercase mb-1">Full Load</p>
+              <p className="font-mono font-semibold text-lg">
+                {perfMetrics.loadComplete !== null ? `${perfMetrics.loadComplete}ms` : "measuring..."}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-slate-600">
+            <p><strong>TTFB:</strong> Time to First Byte (server response time)</p>
+            <p><strong>DOM Ready:</strong> Time until DOM content is loaded and parsed</p>
+            <p><strong>Full Load:</strong> Complete page load including all resources</p>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 p-4 rounded-lg border">
+          <h3 className="font-semibold text-slate-900 mb-3">Implementation Code</h3>
+          <div className="bg-slate-900 text-slate-100 p-4 rounded-md overflow-x-auto">
+            <pre className="text-sm font-mono leading-relaxed">
+              <code className="whitespace-pre">{info.code}</code>
+            </pre>
+          </div>
+          <div className="mt-3 space-y-2">
+            <p className="font-semibold text-sm text-slate-900">Key Configuration:</p>
+            <ul className="space-y-1.5 text-sm text-slate-700">
+              {info.codeExplanation.map((explanation, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2 text-blue-500 font-bold">→</span>
+                  <span>{explanation}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
